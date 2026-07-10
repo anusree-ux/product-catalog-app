@@ -1,0 +1,12 @@
+controller:
+
+  hostPort:
+    enabled: true
+
+  ingressClassResource:
+    default: true
+
+  service:
+    type: NodePort
+
+  watchIngressWithoutClass: true
