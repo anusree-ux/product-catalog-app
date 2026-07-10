@@ -20,6 +20,11 @@ with app.app_context():
 def home():
     return {"message": "Product Catalog Backend Running"}
 
+@app.route("/health", methods=["GET"])
+def health():
+    return {
+        "status": "healthy"
+    }, 200
 
 # Get All Products
 @app.route("/products", methods=["GET"])

@@ -1,15 +1,17 @@
-version: "3.9"
-
 services:
-
   db:
     image: postgres:16
-    container_name: postgres-db
+    
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-    environment:
-      POSTGRES_DB: productdb
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+    container_name: postgres-db
+    
+    env_file:
+      - ./environments/local/.env
 
     ports:
       - "5433:5432"
@@ -19,23 +21,44 @@ services:
 
   backend:
     build: ./backend
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"
+        ]
+  
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     container_name: flask-backend
+
+    env_file:
+      - ./environments/local/.env
 
     ports:
       - "5000:5000"
 
-    environment:
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/productdb
-
     depends_on:
-      - db
+      db:
+        condition: service_healthy 
 
   frontend:
     build: ./frontend
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     container_name: react-frontend
 
     ports:
-      - "5173:5173"
+      - "5173:80"
 
     depends_on:
       - backend

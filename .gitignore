@@ -1,20 +1,29 @@
+# ==========================
 # Python
+# ==========================
 backend/venv/
 backend/__pycache__/
-*.pyc
+*.py[cod]
 
+# ==========================
 # Node
+# ==========================
 frontend/node_modules/
-
-# Environment
-.env
-
-# Vite
 frontend/dist/
 
+# ==========================
+# Environment Variables
+# ==========================
+.env
+environments/local/.env
+
+# ==========================
 # VS Code
+# ==========================
 .vscode/
 
-# OS
+# ==========================
+# OS Files
+# ==========================
 .DS_Store
 Thumbs.db
