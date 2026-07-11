@@ -20,11 +20,12 @@ resources:
 
   - ingress.yaml
 
+  # Network Policies
   - networkpolicy/default-deny-ingress.yaml
   - networkpolicy/default-deny-egress.yaml
-  - networkpolicy/allow-frontend-backend.yaml
-  - networkpolicy/allow-backend-postgres.yaml
   - networkpolicy/allow-dns.yaml
-
+  - networkpolicy/allow-backend-postgres.yaml
+  - networkpolicy/allow-postgres-ingress.yaml
+  - networkpolicy/allow-frontend-backend.yaml
   - networkpolicy/allow-ingress-frontend.yaml
   - networkpolicy/allow-ingress-backend.yaml

@@ -1,0 +1,47 @@
+controller:
+  image:
+    registry: docker.io
+    repository: custom-jenkins
+    tag: "1.0"
+    pullPolicy: IfNotPresent
+
+  admin:
+    username: admin
+    password: admin123
+
+  serviceType: ClusterIP
+
+  installPlugins:
+    - kubernetes
+    - workflow-aggregator
+    - git
+    - github
+    - docker-workflow
+    - credentials
+    - credentials-binding
+    - configuration-as-code
+    - pipeline-stage-view
+    - blueocean
+
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 1
+      memory: 2Gi
+
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hostName: jenkins.local
+
+    annotations:
+      nginx.ingress.kubernetes.io/rewrite-target: /
+
+persistence:
+  enabled: true
+  size: 8Gi
+
+agent:
+  enabled: true
