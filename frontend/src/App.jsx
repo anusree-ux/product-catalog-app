@@ -23,7 +23,10 @@ function App() {
   };
 
   useEffect(() => {
-    fetchProducts();
+    const loadData = async () => {
+      await fetchProducts();
+    };
+    loadData();
   }, []);
 
   // Handle input
