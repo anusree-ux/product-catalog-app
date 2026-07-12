@@ -1,6 +1,6 @@
-FROM python:3.12-slim
+FROM python:3.12-alpine
 
-RUN useradd -u 10001 -m appuser
+RUN addgroup -g 10001 appuser && adduser -u 10001 -G appuser -D appuser
 
 WORKDIR /app
 

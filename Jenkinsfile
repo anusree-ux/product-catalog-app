@@ -31,8 +31,8 @@ spec:
     command: ['cat']
     tty: true
   - name: kubectl
-    image: bitnami/kubectl:latest
-    command: ['cat']
+    image: alpine/k8s:1.28.2
+    command: ['sh', '-c', 'sleep 3600']
     tty: true
 '''
         }
@@ -76,9 +76,7 @@ spec:
             steps {
                 container('docker') {
                     sh '''
-                    # Wait for Docker-in-Docker to be ready
                     until docker info; do sleep 1; done
-                    
                     docker build -t $BACKEND_IMAGE:$IMAGE_TAG ./backend
                     docker build -t $FRONTEND_IMAGE:$IMAGE_TAG ./frontend
                     '''
@@ -89,10 +87,12 @@ spec:
         stage('Security Scan') {
             steps {
                 container('trivy') {
-                    sh '''
-                    trivy image --exit-code 1 --severity CRITICAL $BACKEND_IMAGE:$IMAGE_TAG
-                    trivy image --exit-code 1 --severity CRITICAL $FRONTEND_IMAGE:$IMAGE_TAG
-                    '''
+                    withEnv(['DOCKER_HOST=tcp://localhost:2375']) {
+                        sh '''
+                        trivy image --exit-code 1 --severity CRITICAL $BACKEND_IMAGE:$IMAGE_TAG
+                        trivy image --exit-code 1 --severity CRITICAL $FRONTEND_IMAGE:$IMAGE_TAG
+                        '''
+                    }
                 }
             }
         }
