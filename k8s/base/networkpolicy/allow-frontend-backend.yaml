@@ -8,16 +8,16 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app: backend
+      app: frontend
 
   policyTypes:
-    - Ingress
+    - Egress
 
-  ingress:
-    - from:
+  egress:
+    - to:
         - podSelector:
             matchLabels:
-              app: frontend
+              app: backend
 
       ports:
         - protocol: TCP

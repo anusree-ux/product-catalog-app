@@ -23,7 +23,7 @@ spec:
 
       containers:
         - name: backend
-          image: product-backend:latest
+          image: product-backend:1.0
           imagePullPolicy: IfNotPresent
 
           securityContext:

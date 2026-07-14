@@ -23,7 +23,7 @@ spec:
 
       containers:
         - name: frontend
-          image: product-frontend:latest
+          image: product-frontend:1.0
           imagePullPolicy: IfNotPresent
 
           securityContext:
@@ -34,19 +34,19 @@ spec:
                 - ALL
 
           ports:
-            - containerPort: 8080
+            - containerPort: 80
 
           readinessProbe:
             httpGet:
               path: /
-              port: 8080
+              port: 80
             initialDelaySeconds: 5
             periodSeconds: 10
 
           livenessProbe:
             httpGet:
               path: /
-              port: 8080
+              port: 80
             initialDelaySeconds: 20
             periodSeconds: 20
 
