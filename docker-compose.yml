@@ -1,6 +1,7 @@
 services:
-  db:
+  postgres:
     image: postgres:16
+    restart: unless-stopped
     
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
@@ -21,6 +22,7 @@ services:
 
   backend:
     build: ./backend
+    restart: unless-stopped
 
     healthcheck:
       test:
@@ -40,17 +42,18 @@ services:
     env_file:
       - ./environments/local/.env
 
-    ports:
-      - "5000:5000"
+    expose:
+      - "5000"
 
     depends_on:
       db:
-        condition: service_healthy 
+        condition: service_healthy
 
   frontend:
     build: ./frontend
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--spider", "http://localhost"]
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -58,10 +61,11 @@ services:
     container_name: react-frontend
 
     ports:
-      - "5173:80"
+      - "5173:8080"
 
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
 
 volumes:
   postgres_data:

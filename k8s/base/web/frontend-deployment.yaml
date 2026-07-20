@@ -4,6 +4,10 @@ kind: Deployment
 metadata:
   name: frontend
   namespace: product-catalog
+  labels:
+    app: frontend
+    component: web
+    project: product-catalog
 
 spec:
   replicas: 1
@@ -23,7 +27,7 @@ spec:
 
       containers:
         - name: frontend
-          image: product-frontend:latest
+          image: product-frontend:1.0
           imagePullPolicy: IfNotPresent
 
           securityContext:

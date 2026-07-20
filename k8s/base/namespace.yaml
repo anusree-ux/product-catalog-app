@@ -3,3 +3,5 @@ kind: Namespace
 
 metadata:
   name: product-catalog
+  labels:
+    project: product-catalog

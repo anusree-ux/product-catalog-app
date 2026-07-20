@@ -2,8 +2,12 @@ apiVersion: v1
 kind: Service
 
 metadata:
-  name: frontend-service
+  name: frontend
   namespace: product-catalog
+  labels:
+    app: frontend
+    component: web
+    project: product-catalog
 
 spec:
   selector:

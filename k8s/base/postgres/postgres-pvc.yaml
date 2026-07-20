@@ -4,8 +4,13 @@ kind: PersistentVolumeClaim
 metadata:
   name: postgres-pvc
   namespace: product-catalog
+  labels:
+    app: postgres
+    component: storage
+    project: product-catalog
 
 spec:
+  storageClassName: standard
   accessModes:
     - ReadWriteOnce
 

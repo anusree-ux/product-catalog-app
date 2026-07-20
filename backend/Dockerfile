@@ -1,6 +1,6 @@
-FROM python:3.12-slim
+FROM python:3.12-alpine
 
-RUN useradd -u 10001 -m appuser
+RUN addgroup -g 10001 appuser && adduser -u 10001 -G appuser -D appuser
 
 WORKDIR /app
 
@@ -16,4 +16,4 @@ USER 10001
 
 EXPOSE 5000
 
-CMD ["python", "app.py"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]

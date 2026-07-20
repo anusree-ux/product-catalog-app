@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import "./App.css";
 
-const API_URL = "http://127.0.0.1:5000/products";
+const API_URL = "/api/products";
 
 function App() {
   const [products, setProducts] = useState([]);
+  const [editingId, setEditingId] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState({
     name: "",
@@ -14,22 +16,24 @@ function App() {
     stock: ""
   });
 
-  const [editingId, setEditingId] = useState(null);
-
   // Fetch products
   const fetchProducts = async () => {
-    const response = await axios.get(API_URL);
-    setProducts(response.data);
+    setLoading(true);
+    try {
+      const response = await axios.get(API_URL);
+      setProducts(response.data);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    const loadData = async () => {
-      await fetchProducts();
-    };
-    loadData();
+    fetchProducts();
   }, []);
 
-  // Handle input
+  // Handle input changes
   const handleChange = (e) => {
     setForm({
       ...form,
@@ -37,37 +41,40 @@ function App() {
     });
   };
 
-  // Add or Update
+  // Add or Update handler
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (editingId) {
-      await axios.put(`${API_URL}/${editingId}`, form);
-      setEditingId(null);
-    } else {
-      await axios.post(API_URL, form);
+    try {
+      if (editingId) {
+        await axios.put(`${API_URL}/${editingId}`, form);
+        setEditingId(null);
+      } else {
+        await axios.post(API_URL, form);
+      }
+      
+      setForm({ name: "", category: "", price: "", stock: "" });
+      fetchProducts();
+    } catch (error) {
+      console.error("Error saving product:", error);
     }
-
-    setForm({
-      name: "",
-      category: "",
-      price: "",
-      stock: ""
-    });
-
-    fetchProducts();
   };
 
-  // Delete
+  // Delete product with confirmation
   const deleteProduct = async (id) => {
-    await axios.delete(`${API_URL}/${id}`);
-    fetchProducts();
+    if (window.confirm("Are you sure you want to delete this product?")) {
+      try {
+        await axios.delete(`${API_URL}/${id}`);
+        fetchProducts();
+      } catch (error) {
+        console.error("Error deleting product:", error);
+      }
+    }
   };
 
-  // Edit
-  const editProduct = (product) => {
-    setEditingId(product.id);
-
+  // Populate form for editing
+  const startEdit = (product) => {
+    const id = product.id || product._id;
+    setEditingId(id);
     setForm({
       name: product.name,
       category: product.category,
@@ -76,99 +83,164 @@ function App() {
     });
   };
 
+  // Cancel active edit state
+  const cancelEdit = () => {
+    setEditingId(null);
+    setForm({ name: "", category: "", price: "", stock: "" });
+  };
+
   return (
-    <div className="container">
+    <div className="app-container">
+      {/* Header Panel */}
+      <header className="dashboard-header">
+        <h1>Product Management Console</h1>
+        <p>Manage, track, and optimize your inventory data seamlessly.</p>
+      </header>
 
-      <h1>Product Catalog</h1>
+      {/* Grid Dashboard Content */}
+      <main className="dashboard-content">
+        
+        {/* Left Side: Product Form Entry */}
+        <section className="form-section">
+          <div className="card">
+            <h2>{editingId ? "Modify Product Details" : "Register New Product"}</h2>
+            
+            <form onSubmit={handleSubmit} className="modern-form">
+              <div className="form-group">
+                <label>Product Name</label>
+                <input
+                  name="name"
+                  type="text"
+                  placeholder="e.g., Wireless Mechanical Keyboard"
+                  value={form.name}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-      <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label>Category</label>
+                <input
+                  name="category"
+                  type="text"
+                  placeholder="e.g., Electronics"
+                  value={form.category}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-        <input
-          name="name"
-          placeholder="Product Name"
-          value={form.name}
-          onChange={handleChange}
-          required
-        />
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Price ($)</label>
+                  <input
+                    name="price"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={form.price}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
 
-        <input
-          name="category"
-          placeholder="Category"
-          value={form.category}
-          onChange={handleChange}
-          required
-        />
+                <div className="form-group">
+                  <label>Available Stock</label>
+                  <input
+                    name="stock"
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    value={form.stock}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
 
-        <input
-          name="price"
-          type="number"
-          placeholder="Price"
-          value={form.price}
-          onChange={handleChange}
-          required
-        />
-
-        <input
-          name="stock"
-          type="number"
-          placeholder="Stock"
-          value={form.stock}
-          onChange={handleChange}
-          required
-        />
-
-        <button type="submit">
-          {editingId ? "Update Product" : "Add Product"}
-        </button>
-
-      </form>
-
-      <table>
-
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Category</th>
-            <th>Price</th>
-            <th>Stock</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-
-        <tbody>
-
-          {products.map((product) => (
-
-            <tr key={product.id}>
-
-              <td>{product.name}</td>
-
-              <td>{product.category}</td>
-
-              <td>{product.price}</td>
-
-              <td>{product.stock}</td>
-
-              <td>
-
-                <button onClick={() => editProduct(product)}>
-                  Edit
+              <div className="form-actions">
+                {editingId && (
+                  <button type="button" className="btn btn-secondary" onClick={cancelEdit}>
+                    Cancel
+                  </button>
+                )}
+                <button type="submit" className="btn btn-primary">
+                  {editingId ? "Save Updates" : "Add to Inventory"}
                 </button>
+              </div>
+            </form>
+          </div>
+        </section>
 
-                <button onClick={() => deleteProduct(product.id)}>
-                  Delete
-                </button>
+        {/* Right Side: Data Inventory Table */}
+        <section className="table-section">
+          <div className="card">
+            <div className="card-header">
+              <h2>Inventory Status</h2>
+              <span className="badge">{products.length} Total Items</span>
+            </div>
 
-              </td>
+            {loading ? (
+              <div className="spinner-container">
+                <div className="spinner"></div>
+                <p>Retrieving inventory catalog...</p>
+              </div>
+            ) : products.length === 0 ? (
+              <div className="empty-state">
+                <p>No products found in the catalog.</p>
+                <span className="subtext">Use the registration panel to populate your list.</span>
+              </div>
+            ) : (
+              <div className="table-wrapper">
+                <table className="modern-table">
+                  <thead>
+                    <tr>
+                      <th>Product Name</th>
+                      <th>Category</th>
+                      <th>Price</th>
+                      <th>Availability</th>
+                      <th className="text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {products.map((product) => {
+                      const id = product.id || product._id;
+                      const isOutOfStock = Number(product.stock) === 0;
 
-            </tr>
-
-          ))}
-
-        </tbody>
-
-      </table>
-
+                      return (
+                        <tr key={id}>
+                          <td className="fw-medium">{product.name}</td>
+                          <td><span className="category-tag">{product.category}</span></td>
+                          <td className="fw-semibold">
+                            ${Number(product.price).toLocaleString(undefined, { 
+                              minimumFractionDigits: 2, 
+                              maximumFractionDigits: 2 
+                            })}
+                          </td>
+                          <td>
+                            <span className={`status-pill ${isOutOfStock ? "out-of-stock" : "in-stock"}`}>
+                              {isOutOfStock ? "Out of Stock" : `${product.stock} Units`}
+                            </span>
+                          </td>
+                          <td className="text-right actions-cell">
+                            <button onClick={() => startEdit(product)} className="btn-icon btn-edit">
+                              Edit
+                            </button>
+                            <button onClick={() => deleteProduct(id)} className="btn-icon btn-delete">
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </section>
+      </main>
     </div>
   );
 }

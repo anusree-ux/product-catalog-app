@@ -5,6 +5,8 @@ metadata:
   namespace: product-catalog
   labels:
     app: postgres
+    component: database
+    project: product-catalog
 
 spec:
   replicas: 1

@@ -4,8 +4,11 @@ kind: ConfigMap
 metadata:
   name: product-config
   namespace: product-catalog
+  labels:
+    project: product-catalog
+    component: configuration
 
 data:
   POSTGRES_DB: "productdb"
-  DB_HOST: "postgres-service"
+  DB_HOST: "postgres"
   DB_PORT: "5432"

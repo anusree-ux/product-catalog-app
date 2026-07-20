@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from config import Config
 from models import db, Product
+import time
+from sqlalchemy.exc import OperationalError
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -10,9 +12,26 @@ CORS(app)
 
 db.init_app(app)
 
-# Create tables
+# Wait for PostgreSQL and create tables
 with app.app_context():
-    db.create_all()
+    max_retries = 10
+    retry_delay = 5
+
+    for attempt in range(max_retries):
+        try:
+            db.create_all()
+            print("Connected to PostgreSQL.")
+            break
+
+        except OperationalError:
+            print(
+                f"Database not ready (attempt {attempt + 1}/{max_retries}). "
+                f"Retrying in {retry_delay} seconds..."
+            )
+            time.sleep(retry_delay)
+
+    else:
+        raise Exception("Could not connect to PostgreSQL after multiple attempts.")
 
 
 # Home Route
@@ -20,11 +39,14 @@ with app.app_context():
 def home():
     return {"message": "Product Catalog Backend Running"}
 
+
+# Health Check
 @app.route("/health", methods=["GET"])
 def health():
     return {
         "status": "healthy"
     }, 200
+
 
 # Get All Products
 @app.route("/api/products", methods=["GET"])

@@ -4,6 +4,10 @@ kind: Deployment
 metadata:
   name: backend
   namespace: product-catalog
+  labels:
+    app: backend
+    component: api
+    project: product-catalog
 
 spec:
   replicas: 1
@@ -23,7 +27,7 @@ spec:
 
       containers:
         - name: backend
-          image: product-backend:latest
+          image: product-backend:1.0
           imagePullPolicy: IfNotPresent
 
           securityContext:
@@ -38,14 +42,14 @@ spec:
 
           readinessProbe:
             httpGet:
-              path: /api/products
+              path: /health
               port: 5000
             initialDelaySeconds: 10
             periodSeconds: 10
 
           livenessProbe:
             httpGet:
-              path: /api/products
+              path: /health
               port: 5000
             initialDelaySeconds: 30
             periodSeconds: 20
@@ -58,33 +62,13 @@ spec:
               cpu: "500m"
               memory: "512Mi"
 
+          envFrom:
+            - configMapRef:
+                name: product-config
+
+            - secretRef:
+                name: product-secret
+
           env:
-            - name: DB_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: product-config
-                  key: DB_HOST
-
-            - name: DB_PORT
-              valueFrom:
-                configMapKeyRef:
-                  name: product-config
-                  key: DB_PORT
-
-            - name: POSTGRES_DB
-              valueFrom:
-                configMapKeyRef:
-                  name: product-config
-                  key: POSTGRES_DB
-
-            - name: POSTGRES_USER
-              valueFrom:
-                secretKeyRef:
-                  name: product-secret
-                  key: POSTGRES_USER
-
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: product-secret
-                  key: POSTGRES_PASSWORD
+            - name: DATABASE_URL
+              value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(POSTGRES_DB)"

@@ -19,7 +19,7 @@ spec:
 
             backend:
               service:
-                name: backend-service
+                name: backend
                 port:
                   number: 5000
 
@@ -29,6 +29,6 @@ spec:
 
             backend:
               service:
-                name: frontend-service
+                name: frontend
                 port:
                   number: 80
