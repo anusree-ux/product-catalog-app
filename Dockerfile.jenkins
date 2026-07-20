@@ -12,7 +12,7 @@ RUN apt-get update && \
 
 
 # kubectl
-RUN curl -LO "https://dl.k8s.io/release/$(curl -Ls https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
+RUN curl -LO "https://dl.k8s.io/release/v1.36.2/bin/linux/amd64/kubectl" && \
     install -m 0755 kubectl /usr/local/bin/kubectl && \
     rm kubectl
 
@@ -22,14 +22,13 @@ RUN curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | b
 
 
 # Kind
-RUN curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.29.0/kind-linux-amd64 && \
-    install kind /usr/local/bin/kind && \
-    rm kind
+RUN curl -Lo /usr/local/bin/kind \
+    https://kind.sigs.k8s.io/dl/v0.33.0-alpha/kind-linux-amd64 && \
+    chmod +x /usr/local/bin/kind
 
 
 # Trivy
-RUN curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh && \
-    mv bin/trivy /usr/local/bin/
+RUN curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
 
 
 USER jenkins
