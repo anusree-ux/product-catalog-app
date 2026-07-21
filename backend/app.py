@@ -58,7 +58,20 @@ def get_products():
 # Add Product
 @app.route("/api/products", methods=["POST"])
 def add_product():
-    data = request.json
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"message": "Invalid or missing JSON body"}), 400
+
+    required = ["name", "category", "price", "stock"]
+    missing = [f for f in required if f not in data]
+    if missing:
+        return jsonify({"message": f"Missing fields: {', '.join(missing)}"}), 400
+
+    try:
+        price = float(data["price"])
+        stock = int(data["stock"])
+    except (ValueError, TypeError):
+        return jsonify({"message": "Price must be a number and stock must be an integer"}), 400
 
     product = Product(
         name=data["name"],
@@ -78,12 +91,26 @@ def add_product():
 # Update Product
 @app.route("/api/products/<int:id>", methods=["PUT"])
 def update_product(id):
-    product = Product.query.get(id)
+    product = db.session.get(Product, id)
 
     if not product:
         return jsonify({"message": "Product not found"}), 404
 
-    data = request.json
+    data = request.get_json(silent=True)
+
+    if not data:
+        return jsonify({"message": "Invalid or missing JSON body"}), 400
+
+    required = ["name", "category", "price", "stock"]
+    missing = [f for f in required if f not in data]
+    if missing:
+        return jsonify({"message": f"Missing fields: {', '.join(missing)}"}), 400
+
+    try:
+        price = float(data["price"])
+        stock = int(data["stock"])
+    except (ValueError, TypeError):
+        return jsonify({"message": "Price must be a number and stock must be an integer"}), 400
 
     product.name = data["name"]
     product.category = data["category"]
@@ -100,7 +127,7 @@ def update_product(id):
 # Delete Product
 @app.route("/api/products/<int:id>", methods=["DELETE"])
 def delete_product(id):
-    product = Product.query.get(id)
+    product = db.session.get(Product, id)
 
     if not product:
         return jsonify({"message": "Product not found"}), 404
