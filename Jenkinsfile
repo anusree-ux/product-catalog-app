@@ -40,6 +40,25 @@ spec:
                 checkout scm
             }
         }
+         stage('Wait for Docker Daemon') {
+            steps {
+                container('docker') {
+                    sh '''
+                        for i in $(seq 1 30); do
+                          if docker info > /dev/null 2>&1; then
+                            echo "Docker daemon is ready."
+                            exit 0
+                          fi
+                          echo "Waiting for Docker daemon... ($i/30)"
+                          sleep 2
+                        done
+                        echo "Docker daemon did not become ready in time."
+                        exit 1
+                    '''
+                }
+            }
+        }
+
 
         stage('Build Backend Image') {
             steps {
