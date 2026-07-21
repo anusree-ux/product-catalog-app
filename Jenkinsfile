@@ -63,7 +63,13 @@ spec:
         stage('Build Backend Image') {
             steps {
                 container('docker') {
-                    sh 'docker build -t product-backend:${BUILD_NUMBER} ./backend'
+                    sh '''
+                        docker build \
+                          -t anusree15/product-backend:${BUILD_NUMBER} \
+                          -t anusree15/product-backend:latest \
+                          ./backend
+                    '''
+                    
                 }
             }
         }
@@ -71,7 +77,32 @@ spec:
         stage('Build Frontend Image') {
             steps {
                 container('docker') {
-                    sh 'docker build -t product-frontend:${BUILD_NUMBER} ./frontend'
+                    sh '''
+                        docker build \
+                          -t anusree15/product-frontend:${BUILD_NUMBER} \
+                          -t anusree15/product-frontend:latest \
+                          ./frontend
+                    '''
+                }
+            }
+        }
+        
+        stage('Push Images') {
+            steps {
+                container('docker') {
+                    withCredentials([usernamePassword(
+                        credentialsId: 'dockerhub-creds',
+                        usernameVariable: 'DOCKERHUB_USER',
+                        passwordVariable: 'DOCKERHUB_TOKEN'
+                    )]) {
+                        sh '''
+                            echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USER" --password-stdin
+                            docker push anusree15/product-backend:${BUILD_NUMBER}
+                            docker push anusree15/product-backend:latest
+                            docker push anusree15/product-frontend:${BUILD_NUMBER}
+                            docker push anusree15/product-frontend:latest
+                        '''
+                    }
                 }
             }
         }

@@ -133,43 +133,10 @@ daemonset/promtail \
 || echo "Promtail not ready yet"
 
 
-
-echo "================================="
-echo "Building Docker Images"
-echo "================================="
-
-
-docker build \
--t product-backend:1.0 \
-./backend
-
-
-docker build \
--t product-frontend:1.0 \
-./frontend
-
-
-
-echo "================================="
-echo "Loading Images into Kind"
-echo "================================="
-
-
-kind load docker-image \
-product-backend:1.0 \
---name $CLUSTER_NAME
-
-
-kind load docker-image \
-product-frontend:1.0 \
---name $CLUSTER_NAME
-
-
-
 echo "================================="
 echo "Deploying Application"
 echo "================================="
-
+echo "Images will be pulled from Docker Hub (anusree15/product-backend, anusree15/product-frontend)."
 
 kubectl apply -k k8s/base
 

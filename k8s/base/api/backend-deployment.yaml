@@ -27,8 +27,8 @@ spec:
 
       containers:
         - name: backend
-          image: product-backend:1.0
-          imagePullPolicy: IfNotPresent
+          image: anusree15/product-backend:latest
+          imagePullPolicy: Always
 
           securityContext:
             allowPrivilegeEscalation: false
