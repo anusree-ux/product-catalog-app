@@ -46,7 +46,7 @@ services:
       - "5000"
 
     depends_on:
-      db:
+      postgres:
         condition: service_healthy
 
   frontend:
