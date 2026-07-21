@@ -6,21 +6,30 @@ apiVersion: v1
 kind: Pod
 spec:
   containers:
+    - name: dind
+      image: docker:24-dind
+      securityContext:
+        privileged: true
+      env:
+        - name: DOCKER_TLS_CERTDIR
+          value: ""
+      volumeMounts:
+        - name: docker-storage
+          mountPath: /var/lib/docker
     - name: docker
       image: docker:24-cli
       command: ['cat']
       tty: true
-      volumeMounts:
-        - name: docker-sock
-          mountPath: /var/run/docker.sock
+      env:
+        - name: DOCKER_HOST
+          value: tcp://localhost:2375
     - name: kubectl
       image: bitnami/kubectl:latest
       command: ['cat']
       tty: true
   volumes:
-    - name: docker-sock
-      hostPath:
-        path: /var/run/docker.sock
+    - name: docker-storage
+      emptyDir: {}
 '''
         }
     }
