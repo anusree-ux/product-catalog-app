@@ -1,17 +1,14 @@
 # Product Catalog Platform
-A cloud-native **Product Catalog Platform** built using **React**, **Flask**, and **PostgreSQL**, containerized with **Docker**, orchestrated using **Kubernetes (Kind)**, and automated with a **Jenkins CI/CD Pipeline**. The project also includes **NGINX Ingress**, **Network Policies**, **Prometheus**, **Grafana**, **Loki**, and **Promtail** for monitoring, logging, and secure networking.
+A cloud-native product catalog app — **React + Flask + PostgreSQL** — containerized with Docker, deployed on **Kubernetes (Kind)**, and shipped through a **Jenkins CI/CD pipeline**. Includes NGINX Ingress, Network Policies, and a Prometheus/Grafana/Loki monitoring stack.
 <img width="1462" height="776" alt="App-screenshot" src="https://github.com/user-attachments/assets/7a90f5b1-683f-4eb3-be41-da9a5f0b164c" />
 
 ---
 ## 🚀 Features
-- React frontend served with NGINX (unprivileged)
+- React frontend served with NGINX 
 - Flask REST API backend
 - PostgreSQL database with persistent storage
 - Dockerized frontend and backend (multi-stage builds)
-- Kubernetes Deployments and Services
-- NGINX Ingress Controller
-- Persistent Volume for PostgreSQL
-- ConfigMaps and Secrets
+- Kubernetes Deployments, Services, Ingress, ConfigMaps, Secrets, PVC
 - Kubernetes Network Policies (default-deny with explicit allow rules)
 - Jenkins CI/CD Pipeline (build → push → validate)
 - Docker Hub Image Publishing
@@ -22,11 +19,50 @@ A cloud-native **Product Catalog Platform** built using **React**, **Flask**, an
 
 ---
 
-# 📥 Clone the Repository
+### 1. Clone the repo
+ 
 ```bash
-git clone https://github.com/anusree-ux/product-catelog-app.git
-cd product-catelog-app
+git clone https://github.com/anusree-ux/product-catalog-app.git
+cd product-catalog-app
 ```
+ 
+### 2. Set up environment variables
+ 
+```bash
+mkdir -p environments/local
+cp .env.example environments/local/.env
+```
+### 3. Run locally with Docker Compose
+ 
+```bash
+./deploy.sh start     # build and start everything
+./deploy.sh status    # check container status
+./deploy.sh stop      # stop everything
+./deploy.sh restart   # rebuild and restart
+```
+ 
+The app will be available at **http://localhost:5173**.
+
+## Deploying to Kubernetes (Kind)
+ 
+```bash
+./scripts/bootstrap-kind.sh
+```
+ 
+Verify the deployment:
+ 
+```bash
+kubectl get pods -n product-catalog
+kubectl get svc -n product-catalog
+kubectl get ingress -n product-catalog
+```
+Access the application:
+
+```
+http://product-catalog.local
+```
+add it to your `/etc/hosts` pointing at the Kind cluster's ingress IP.
+
 ---
 
 # 🏗️ Architecture
@@ -39,23 +75,29 @@ cd product-catelog-app
                      │
              Jenkins Pipeline
                      │
-        ┌────────────┴────────────┐
-        │                         │
- Build Docker Images      Load Images into Kind
-        │                         │
-        └────────────┬────────────┘
+        ┌────────────┼────────────┐
+        │            │            │
+ Build Backend  Build Frontend    │
+   Image           Image          │
+        │            │            │
+        └────────────┴────────────┘
+                     │
+          Push Images to Docker Hub
+                     │
+          Validate K8s Manifests
                      │
           Deploy to Kubernetes
                      │
-              Kind Cluster (EC2)
+              Kind Cluster
                      │
              NGINX Ingress
                      │
-              Frontend Pod
-                     │
-              Backend Pod
-                     │
-              PostgreSQL Pod
+        ┌────────────┴────────────┐
+        │                         │
+  Frontend Pod  ──────────►  Backend Pod
+                                   │
+                                   ▼
+                            PostgreSQL Pod
         ─────────────────────────────
       Prometheus ───► Grafana
            ▲              ▲
@@ -129,64 +171,18 @@ Logs from Kubernetes pods are collected by Promtail, stored in Loki, and visuali
 The Jenkins pipeline automates the entire deployment process.
 
 Pipeline stages:
-1. Checkout Source Code
-2. Install Dependencies
-3. Lint Frontend
-4. Run Unit Tests
-5. Build Docker Images
-6. Scan Images with Trivy
-7. Push Images to Docker Hub
-8. Deploy Updated Images to Kubernetes
-9. Validate Deployment
+1. Checkout source code
+2. Wait for the Docker daemon (dind sidecar) to be ready
+3. Build backend Docker image
+4. Build frontend Docker image
+5. Push both images to Docker Hub (tagged with the build number)
+6. Validate Kubernetes manifests (kubectl apply --dry-run=client -k k8s/base)
+7. Deploy to Kubernetes (kubectl set image for backend & frontend)
+8. Wait for rollout to complete (kubectl rollout status)
+9. Verify deployment (list pods, deployments, and services)
 <img width="1882" height="895" alt="Jenkins- Stage" src="https://github.com/user-attachments/assets/90a963b7-d25b-480c-84a9-0ddeb6f10c3c" />
 <img width="1906" height="775" alt="DockerHub" src="https://github.com/user-attachments/assets/a936b38d-3c03-4043-af0b-ef7b5fb60074" />
 
----
-# 🐳 Docker Compose
-Run the application locally using the helper script.
-```bash
-cp .env.example environments/local/.env
-# edit environments/local/.env with your own values
-```
-
-Start the application:
-```bash
-./deploy.sh start
-```
-Stop the application:
-```bash
-./deploy.sh stop
-```
-Restart the application:
-```bash
-./deploy.sh restart
-```
-Check the status:
-```bash
-./deploy.sh status
-```
----
-
-# ☸️ Kubernetes Deployment
-Deploy the application to a Kind cluster:
-
-```bash
-./scripts/bootstrap-kind.sh
-```
-
-Verify the deployment:
-
-```bash
-kubectl get pods -n product-catalog
-kubectl get svc -n product-catalog
-kubectl get ingress -n product-catalog
-```
-
-Access the application:
-
-```
-http://product-catalog.local
-```
 ---
 # 📄 License
 This project is intended for learning and portfolio purposes.
